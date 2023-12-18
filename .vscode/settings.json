@@ -1,0 +1,11 @@
+{
+  "workbench.colorCustomizations": {
+    "activityBar.background": "#422242",
+    "titleBar.activeBackground": "#5C2F5D",
+    "titleBar.activeForeground": "#FCF9FC"
+  },
+  "cSpell.words": [
+    "cupertino",
+    "sqflite"
+  ]
+}
