@@ -131,6 +131,7 @@ class DatabaseService {
         name TEXT NOT NULL);""");
     await db.execute("""CREATE TABLE inventories
         (id INTEGER PRIMARY KEY AUTOINCREMENT,
+        uuid TEXT NOT NULL,
         started TEXT NOT NULL,
         finished TEXT,
         user TEXT NOT NULL,

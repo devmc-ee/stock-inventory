@@ -46,9 +46,8 @@ class App extends StatelessWidget {
           builder: (context, state) {
             final id = state.pathParameters['id'];
             final int inventoryId = id != null ? int.parse(id) : 0;
-            print('inventoryId');
-            print(inventoryId);
-            return InventoryPage(inventoryId);
+            context.read<InventoryProvider>().setCurrentInventory(inventoryId);
+            return const InventoryPage();
           }),
       GoRoute(path: '/item', builder: (context, state) => const ItemPage()),
       GoRoute(path: '/login', builder: (context, state) => const LoginPage()),

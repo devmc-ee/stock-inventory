@@ -1,26 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:inventory/models/inventory_imodel.dart';
-import 'package:inventory/pages/home.dart';
 import 'package:inventory/pages/item.dart';
 import 'package:inventory/providers/inventory.dart';
 import 'package:inventory/providers/login_info.dart';
 import 'package:provider/provider.dart';
 
 class InventoryPage extends StatelessWidget {
-  final int? inventoryId;
-  const InventoryPage(this.inventoryId, {super.key});
-
+  const InventoryPage({super.key});
   @override
   Widget build(BuildContext context) {
-    String userName = context.watch<LoginInfo>().userName;
-
     return Scaffold(
       appBar: appBar(context),
       body: const InventoryItemsList(),
       floatingActionButton: FloatingActionButton(
           onPressed: () async {
-            await context.read<InventoryProvider>().create(userName);
-
             if (context.mounted) {
               Navigator.push(context,
                   MaterialPageRoute(builder: (context) => const ItemPage()));
@@ -32,9 +25,13 @@ class InventoryPage extends StatelessWidget {
   }
 
   AppBar appBar(BuildContext context) {
+    InventoryModel? currentInventory;
+    if (context.mounted) {
+      currentInventory = context.watch<InventoryProvider>().currentInventory;
+    }
     return AppBar(
       title: Text(
-        'Inventory $inventoryId',
+        'Inventory ${currentInventory?.id}',
         style: const TextStyle(fontWeight: FontWeight.bold),
       ),
       centerTitle: true,
@@ -50,8 +47,16 @@ class InventoryItemsList extends StatefulWidget {
 }
 
 class _InventoryItemsListState extends State<InventoryItemsList> {
+  InventoryModel? _currentInventory;
+  @override
+  void initState() {
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
+    _currentInventory = context.watch<InventoryProvider>().currentInventory;
+
     List<InventoryModel> inventoryItems = [];
 
     return Center(
@@ -71,33 +76,4 @@ class _InventoryItemsListState extends State<InventoryItemsList> {
                   );
                 }));
   }
-}
-
-showAlertDialog(BuildContext context) {
-  // set up the buttons
-  Widget cancelButton = TextButton(
-    child: Text("Cancel"),
-    onPressed: () {},
-  );
-  Widget continueButton = TextButton(
-    child: Text("Continue"),
-    onPressed: () {},
-  );
-  // set up the AlertDialog
-  AlertDialog alert = AlertDialog(
-    title: Text("AlertDialog"),
-    content:
-        Text("Would you like to continue learning how to use Flutter alerts?"),
-    actions: [
-      cancelButton,
-      continueButton,
-    ],
-  );
-  // show the dialog
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return alert;
-    },
-  );
 }

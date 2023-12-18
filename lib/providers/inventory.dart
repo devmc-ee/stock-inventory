@@ -8,12 +8,19 @@ import 'package:inventory/services/database.dart';
 class InventoryProvider extends ChangeNotifier {
   List<InventoryModel> _inventories = [];
   int _currentInventoryId = 0;
+  InventoryModel? _currentInventory;
 
   List<InventoryModel> get inventories => _inventories;
   int get currentInventoryId => _currentInventoryId;
   bool get hasOpenInventory => _inventories.isNotEmpty
       ? _inventories.where((element) => element.finished == null).isNotEmpty
       : false;
+
+  InventoryModel? get currentInventory => _currentInventory;
+
+  void setCurrentInventory(int id) {
+    _currentInventory = _inventories.where((element) => element.id == id).first;
+  }
 
   Future<void> getInventories() async {
     var inventory = await DatabaseService.getAll('inventories');
@@ -26,14 +33,8 @@ class InventoryProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> create(String userName) async {
-    _currentInventoryId = await DatabaseService.insert(
-        'inventories',
-        InventoryModel(
-          {},
-          user: userName,
-          started: DateTime.now().toString(),
-        ).toMap());
+  Future<void> addInventory(String userName) async {
+    await InventoryRepository.addInventory(userName);
     await getInventories();
   }
 
@@ -48,4 +49,6 @@ class InventoryProvider extends ChangeNotifier {
     });
     await getInventories();
   }
+
+  Future<void> addItem() async {}
 }

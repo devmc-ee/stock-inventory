@@ -45,7 +45,7 @@ class _ActionButtonState extends State<ActionButton> {
   }
 
   addNewInventory(userName) async {
-    await context.read<InventoryProvider>().create(userName);
+    await context.read<InventoryProvider>().addInventory(userName);
   }
 
   finishStartedInventory(context) async {
@@ -86,18 +86,21 @@ class _InventoryListState extends State<InventoryList> {
                 physics: const ScrollPhysics(parent: null),
                 itemCount: inventories.length,
                 itemBuilder: (context, index) {
-                  final int id = inventories[index].id as int;
+                  final InventoryModel currentInventory = inventories[index];
                   bool isFinished = inventories[index].finished != null;
                   String title = isFinished
-                      ? '$id: Finished: ${inventories[index].finished}'
-                      : '$id: Started: ${inventories[index].started}';
+                      ? '${currentInventory.id}: Finished: ${currentInventory.finished}'
+                      : '${currentInventory.id}: Started: ${currentInventory.started}';
                   return ListTile(
                     onTap: () async {
+                      context
+                          .read<InventoryProvider>()
+                          .setCurrentInventory(currentInventory.id!);
                       if (context.mounted) {
                         await Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => InventoryPage(id)));
+                                builder: (context) => InventoryPage()));
                       }
                     },
                     leading: const Icon(Icons.table_view),

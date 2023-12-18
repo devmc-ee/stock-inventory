@@ -21,6 +21,24 @@ class ItemPage extends StatelessWidget {
               ),
             ),
           ),
+          Padding(
+            padding: EdgeInsets.all(8),
+            child: TextField(
+              decoration: InputDecoration(
+                border: OutlineInputBorder(),
+                labelText: 'Name',
+              ),
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.all(8),
+            child: TextField(
+              decoration: InputDecoration(
+                border: OutlineInputBorder(),
+                labelText: 'Price',
+              ),
+            ),
+          ),
           ElevatedButtonExample()
         ],
       ),

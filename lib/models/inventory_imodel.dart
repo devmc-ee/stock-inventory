@@ -1,16 +1,25 @@
 class InventoryModel {
   String user;
   String started;
+  String uuid;
   String? finished;
   int? id;
+  int? synced;
 
   InventoryModel(Map item,
-      {required this.user, required this.started, this.finished, this.id});
+      {required this.user,
+      required this.started,
+      required this.uuid,
+      this.finished,
+      this.id,
+      this.synced});
 
   InventoryModel.fromMap(Map<dynamic, dynamic> item)
       : user = item['user'],
         started = item['started'],
         finished = item['finished'],
+        synced = item['synced'],
+        uuid = item['uuid'],
         id = item['id'];
 
   Map<String, dynamic> toMap() {
@@ -18,7 +27,9 @@ class InventoryModel {
       'user': user,
       'started': started,
       'finished': finished,
+      'synced': synced,
       'id': id,
+      'uuid': uuid,
     };
   }
 }
