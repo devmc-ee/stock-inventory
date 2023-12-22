@@ -1,17 +1,17 @@
-import 'package:inventory/models/inventory_imodel.dart';
+import 'package:inventory/models/inventory_list_model.dart';
 import 'package:inventory/services/database.dart';
 import 'package:uuid/uuid.dart';
-class InventoryRepository {
+class InventoryListRepository {
   static const _tableName = 'inventories';
-  static const model = InventoryModel;
+  static const model = InventoryListModel;
   static const uuid = Uuid();
 
-  static Future<void> addInventory(
+  static Future<void> add(
     userName,
   ) async {
     await DatabaseService.insert(
-        'inventories',
-        InventoryModel(
+        _tableName,
+        InventoryListModel(
           {},
           user: userName,
           uuid: uuid.v1(),

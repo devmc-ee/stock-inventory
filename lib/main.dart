@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:inventory/pages/inventory.dart';
+import 'package:inventory/pages/inventory_list.dart';
 import 'package:inventory/providers/inventory.dart';
 import 'package:inventory/providers/login_info.dart';
 import 'package:inventory/pages/home.dart';
-import 'package:inventory/pages/item.dart';
+import 'package:inventory/pages/inventory_item.dart';
 import 'package:inventory/pages/login.dart';
 import 'package:provider/provider.dart';
 
@@ -47,9 +47,9 @@ class App extends StatelessWidget {
             final id = state.pathParameters['id'];
             final int inventoryId = id != null ? int.parse(id) : 0;
             context.read<InventoryProvider>().setCurrentInventory(inventoryId);
-            return const InventoryPage();
+            return const InventoryListPage();
           }),
-      GoRoute(path: '/item', builder: (context, state) => const ItemPage()),
+      GoRoute(path: '/item', builder: (context, state) => const InventoryItemPage()),
       GoRoute(path: '/login', builder: (context, state) => const LoginPage()),
     ],
     redirect: (context, state) {

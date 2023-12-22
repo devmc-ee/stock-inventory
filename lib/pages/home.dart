@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:inventory/models/inventory_imodel.dart';
-import 'package:inventory/pages/inventory.dart';
-import 'package:inventory/pages/item.dart';
+import 'package:inventory/models/inventory_list_model.dart';
+import 'package:inventory/pages/inventory_list.dart';
 import 'package:inventory/providers/inventory.dart';
 import 'package:inventory/providers/login_info.dart';
 import 'package:provider/provider.dart';
@@ -45,7 +44,7 @@ class _ActionButtonState extends State<ActionButton> {
   }
 
   addNewInventory(userName) async {
-    await context.read<InventoryProvider>().addInventory(userName);
+    await context.read<InventoryProvider>().addInventoryList(userName);
   }
 
   finishStartedInventory(context) async {
@@ -76,7 +75,7 @@ class InventoryList extends StatefulWidget {
 class _InventoryListState extends State<InventoryList> {
   @override
   Widget build(BuildContext context) {
-    List<InventoryModel> inventories =
+    List<InventoryListModel> inventories =
         context.watch<InventoryProvider>().inventories;
 
     return Center(
@@ -86,7 +85,7 @@ class _InventoryListState extends State<InventoryList> {
                 physics: const ScrollPhysics(parent: null),
                 itemCount: inventories.length,
                 itemBuilder: (context, index) {
-                  final InventoryModel currentInventory = inventories[index];
+                  final InventoryListModel currentInventory = inventories[index];
                   bool isFinished = inventories[index].finished != null;
                   String title = isFinished
                       ? '${currentInventory.id}: Finished: ${currentInventory.finished}'
@@ -100,7 +99,7 @@ class _InventoryListState extends State<InventoryList> {
                         await Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => InventoryPage()));
+                                builder: (context) => InventoryListPage()));
                       }
                     },
                     leading: const Icon(Icons.table_view),

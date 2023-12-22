@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:inventory/models/inventory_imodel.dart';
-import 'package:inventory/pages/item.dart';
+import 'package:inventory/models/inventory_list_model.dart';
+import 'package:inventory/pages/inventory_item.dart';
 import 'package:inventory/providers/inventory.dart';
-import 'package:inventory/providers/login_info.dart';
 import 'package:provider/provider.dart';
 
-class InventoryPage extends StatelessWidget {
-  const InventoryPage({super.key});
+class InventoryListPage extends StatelessWidget {
+  const InventoryListPage({super.key});
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -16,7 +15,7 @@ class InventoryPage extends StatelessWidget {
           onPressed: () async {
             if (context.mounted) {
               Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => const ItemPage()));
+                  MaterialPageRoute(builder: (context) => const InventoryItemPage()));
             }
           },
           tooltip: 'New',
@@ -25,7 +24,7 @@ class InventoryPage extends StatelessWidget {
   }
 
   AppBar appBar(BuildContext context) {
-    InventoryModel? currentInventory;
+    InventoryListModel? currentInventory;
     if (context.mounted) {
       currentInventory = context.watch<InventoryProvider>().currentInventory;
     }
@@ -47,7 +46,7 @@ class InventoryItemsList extends StatefulWidget {
 }
 
 class _InventoryItemsListState extends State<InventoryItemsList> {
-  InventoryModel? _currentInventory;
+  InventoryListModel? _currentInventory;
   @override
   void initState() {
     super.initState();
@@ -57,7 +56,7 @@ class _InventoryItemsListState extends State<InventoryItemsList> {
   Widget build(BuildContext context) {
     _currentInventory = context.watch<InventoryProvider>().currentInventory;
 
-    List<InventoryModel> inventoryItems = [];
+    List<InventoryListModel> inventoryItems = [];
 
     return Center(
         child: inventoryItems.isEmpty

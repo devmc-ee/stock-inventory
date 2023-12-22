@@ -19,8 +19,6 @@ class LoginInfo extends ChangeNotifier {
     int userId = 0;
     _userName = await DatabaseService.getUser();
 
-    print('_userName');
-    print(_userName);
     // single time login
     if (_userName.isEmpty) {
       _userName = _controller.text;

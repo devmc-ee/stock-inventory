@@ -1,4 +1,4 @@
-class InventoryModel {
+class InventoryListModel {
   String user;
   String started;
   String uuid;
@@ -6,7 +6,7 @@ class InventoryModel {
   int? id;
   int? synced;
 
-  InventoryModel(Map item,
+  InventoryListModel(Map item,
       {required this.user,
       required this.started,
       required this.uuid,
@@ -14,7 +14,7 @@ class InventoryModel {
       this.id,
       this.synced});
 
-  InventoryModel.fromMap(Map<dynamic, dynamic> item)
+  InventoryListModel.fromMap(Map<dynamic, dynamic> item)
       : user = item['user'],
         started = item['started'],
         finished = item['finished'],
