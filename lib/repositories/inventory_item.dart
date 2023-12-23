@@ -6,7 +6,7 @@ class InventoryItemRepository {
   static const model = InventoryItemModel;
 
   static Future<int> add({required String code, required String name, required double price, required String inventoryUuid, required String user, int amount = 1, }) async {
-      final data = InventoryItemModel(code: code, name: name, price: '$price €', amount: amount, user: user, inventory: inventoryUuid).toMap();
+      final data = InventoryItemModel(code: code, name: name, price: price, amount: amount, user: user, inventory: inventoryUuid, createdAt: DateTime.now(), updatedAt: DateTime.now()).toMap();
       return await DatabaseService.insert(_tableName, data);
   }
 

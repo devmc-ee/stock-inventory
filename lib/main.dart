@@ -50,7 +50,7 @@ class App extends StatelessWidget {
             context.read<InventoryProvider>().setCurrentInventory(inventoryId);
             return const InventoryListPage();
           }),
-      GoRoute(path: '/item', builder: (context, state) => const InventoryItemPage()),
+      GoRoute(path: '/item', builder: (context, state) => InventoryItemPage()),
       GoRoute(path: '/login', builder: (context, state) => const LoginPage()),
     ],
     redirect: (context, state) {

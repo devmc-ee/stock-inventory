@@ -1,10 +1,12 @@
 class InventoryItemModel {
   String code;
   String name;
-  String price;
+  double price;
   int amount;
   String user;
   String inventory;
+  DateTime createdAt;
+  DateTime updatedAt;
 
   InventoryItemModel({
     required this.code,
@@ -13,6 +15,8 @@ class InventoryItemModel {
     required this.amount,
     required this.user,
     required this.inventory,
+    required this.createdAt,
+    required this.updatedAt,
   });
 
   InventoryItemModel.fromMap(Map<dynamic, dynamic> item)
@@ -21,7 +25,9 @@ class InventoryItemModel {
         price = item['price'],
         amount = item['amount'],
         user = item['user'],
-        inventory = item['inventory'];
+        inventory = item['inventory'],
+        createdAt = DateTime.parse(item['created_at']),
+        updatedAt = DateTime.parse(item['updated_at']);
 
   Map<String, Object> toMap() {
     return {
@@ -30,7 +36,9 @@ class InventoryItemModel {
       'price': price,
       'amount': amount,
       'user': user,
-      'inventory': inventory
+      'inventory': inventory,
+      'created_at': createdAt.toLocal().toString(),
+      'updated_at': updatedAt.toLocal().toString(),
     };
   }
 }

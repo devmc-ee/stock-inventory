@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'dart:io';
@@ -157,6 +155,8 @@ class DatabaseService {
         price REAl NOT NULL,
         amount INTEGER NOT NULL,
         user TEXT NOT NULL,
-        inventory INTEGER NOT NULL);""");
+        inventory INTEGER NOT NULL,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL);""");
   }
 }

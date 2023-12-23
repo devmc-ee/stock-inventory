@@ -10,6 +10,7 @@ class InventoryProvider extends ChangeNotifier {
   int _currentInventoryId = 0;
   InventoryListModel? _currentInventory;
   List<InventoryItemModel> _inventoryItems = [];
+  List<InventoryItemModel> _filteredInventoryItems = [];
   InventoryItemModel? _currentInventoryItem;
   bool _isOpenedSearchBar = false;
   final _codeController = TextEditingController();
@@ -17,11 +18,10 @@ class InventoryProvider extends ChangeNotifier {
   final _priceController = TextEditingController();
   final _amountController = TextEditingController(text: '1');
   final _searchController = TextEditingController();
-
   bool _canSubmit = false;
 
   List<InventoryListModel> get inventories => _inventories;
-  List<InventoryItemModel> get inventoryItems => _inventoryItems;
+  List<InventoryItemModel> get inventoryItems => _filteredInventoryItems;
 
   int get currentInventoryId => _currentInventoryId;
   bool get hasOpenInventory => _inventories.isNotEmpty
@@ -38,9 +38,18 @@ class InventoryProvider extends ChangeNotifier {
   TextEditingController get amountController => _amountController;
   TextEditingController get searchController => _searchController;
 
+  String get searchedCode => _searchController.text;
+
   int get amount => int.parse(_amountController.text);
 
   bool get canSubmit => _canSubmit;
+
+  void clearSearch() {
+    _searchController.text = '';
+    _isOpenedSearchBar = false;
+    
+    notifyListeners();
+  }
 
   void deleteInventoryItem(String code) async {
     _inventoryItems.removeWhere((element) => element.code == code);
@@ -69,7 +78,7 @@ class InventoryProvider extends ChangeNotifier {
             ? _currentInventoryItem!.code
             : '';
         _priceController.text = _currentInventoryItem?.price != null
-            ? _currentInventoryItem!.price
+            ? _currentInventoryItem!.price.toString()
             : '';
       }
       notifyListeners();
@@ -89,13 +98,22 @@ class InventoryProvider extends ChangeNotifier {
 
   Future<void> getInventorieItems() async {
     _inventoryItems = await InventoryItemRepository.getAll();
-
+    _filteredInventoryItems = _inventoryItems;
     notifyListeners();
   }
 
   void initSearchController () {
     _searchController.addListener(() {
-      print(_searchController.text);
+      String searchCode = _searchController.text;
+     
+     if (searchedCode.isNotEmpty) {
+      _filteredInventoryItems = _inventoryItems.where((element) {
+              return element.code.toLowerCase().contains(searchCode.toLowerCase());
+            }).toList();
+     } else {
+      _filteredInventoryItems = _inventoryItems;
+     }
+       notifyListeners();
     });
   }
   void initControllers() {
@@ -110,6 +128,7 @@ class InventoryProvider extends ChangeNotifier {
     priceController.addListener(() {
       validateForm();
     });
+
 
     nameController.addListener(() {
       validateForm();
@@ -126,17 +145,19 @@ class InventoryProvider extends ChangeNotifier {
           ? _currentInventoryItem!.code
           : '';
       _priceController.text = _currentInventoryItem?.price != null
-          ? _currentInventoryItem!.price
+          ? _currentInventoryItem!.price.toString()
           : '';
     }
   }
 
-  void validateForm() {
+  Future<void> validateForm() async {
     _canSubmit = _codeController.text.isNotEmpty &&
         _nameController.text.isNotEmpty &&
         _priceController.text.isNotEmpty &&
         _amountController.text.isNotEmpty;
-    // notifyListeners();
+    await Future.delayed(Duration.zero);
+
+    notifyListeners();
   }
 
   void setCurrentInventory(int id) {
@@ -189,7 +210,6 @@ class InventoryProvider extends ChangeNotifier {
             price: price,
             inventoryUuid: _currentInventory!.uuid,
             user: _currentInventory!.user);
-        await getInventorieItems();
       } catch (error) {
         String errorMessage = error.toString();
 
@@ -205,6 +225,8 @@ class InventoryProvider extends ChangeNotifier {
         );
       }
     }
+    
+    await getInventorieItems();
 
     dropFormData();
     return SnakbarMessage(

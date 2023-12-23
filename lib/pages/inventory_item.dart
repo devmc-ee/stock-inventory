@@ -1,23 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
+import 'package:inventory/models/inventory_item_model.dart';
 import 'package:inventory/providers/inventory.dart';
 import 'package:provider/provider.dart';
 
 class InventoryItemPage extends StatelessWidget {
-  const InventoryItemPage({super.key});
+  InventoryItemPage({super.key});
+  final DateFormat formatter = DateFormat('yyyy-MM-dd H:m');
 
   @override
   Widget build(BuildContext context) {
+    InventoryItemModel? currentInventoryItem = context.watch<InventoryProvider>().currentInventoryItem;
+    final createdAt = currentInventoryItem?.createdAt != null ? formatter.format(currentInventoryItem!.createdAt) : '';
+    final updatedAt = currentInventoryItem?.updatedAt != null ? formatter.format(currentInventoryItem!.updatedAt) : '';
     return Scaffold(
       // resizeToAvoidBottomInset: false,
       appBar: appBar(),
-      body: const Column(
+      body: Column(
         children: [
-          SubmittableTextField('Code'),
-          SubmittableTextField('Name'),
-          SubmittableTextField('Price'),
-          SubmittableTextField('Amount'),
-          Button(),
+          const SubmittableTextField('Code'),
+          const SubmittableTextField('Name'),
+          const SubmittableTextField('Price'),
+          const SubmittableTextField('Amount'),
+          const Button(),
+          const SizedBox(height: 30),
+          Text(currentInventoryItem?.createdAt != null ? 'Created at: $createdAt' : 'New item'),
+          Text(currentInventoryItem?.updatedAt != null ? 'Last update at: $updatedAt' : ''),
         ],
       ),
     );
@@ -60,7 +69,9 @@ class _SubmittableTextField extends State<SubmittableTextField> {
       nameController =
           Provider.of<InventoryProvider>(context, listen: false).nameController;
       Provider.of<InventoryProvider>(context, listen: false).initControllers();
+      Provider.of<InventoryProvider>(context, listen: false).validateForm();
     }
+
     super.initState();
   }
 
@@ -217,6 +228,14 @@ class Button extends StatefulWidget {
 }
 
 class _ButtonState extends State<Button> {
+  @override 
+  void initState() {
+    if (mounted) {
+      Provider.of<InventoryProvider>(context, listen: false).validateForm();
+
+    }
+    super.initState();
+  }
   @override
   Widget build(BuildContext context) {
     bool canSubmit = context.watch<InventoryProvider>().canSubmit;
