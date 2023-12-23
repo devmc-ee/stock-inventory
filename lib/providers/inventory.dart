@@ -12,17 +12,19 @@ class InventoryProvider extends ChangeNotifier {
   List<InventoryItemModel> _inventoryItems = [];
   List<InventoryItemModel> _filteredInventoryItems = [];
   InventoryItemModel? _currentInventoryItem;
+  final FocusNode _focusNode = FocusNode();
+
   bool _isOpenedSearchBar = false;
+  bool _canSubmit = false;
   final _codeController = TextEditingController();
   final _nameController = TextEditingController();
   final _priceController = TextEditingController();
   final _amountController = TextEditingController(text: '1');
   final _searchController = TextEditingController();
-  bool _canSubmit = false;
-
   List<InventoryListModel> get inventories => _inventories;
   List<InventoryItemModel> get inventoryItems => _filteredInventoryItems;
 
+  FocusNode get focusNode => _focusNode;
   int get currentInventoryId => _currentInventoryId;
   bool get hasOpenInventory => _inventories.isNotEmpty
       ? _inventories.where((element) => element.finished == null).isNotEmpty
@@ -44,6 +46,7 @@ class InventoryProvider extends ChangeNotifier {
 
   bool get canSubmit => _canSubmit;
 
+  
   void clearSearch() {
     _searchController.text = '';
     _isOpenedSearchBar = false;
@@ -117,6 +120,19 @@ class InventoryProvider extends ChangeNotifier {
     });
   }
   void initControllers() {
+    _focusNode.addListener(() {
+      if (!_focusNode.hasFocus && codeController.text.isNotEmpty) {
+        try {
+          InventoryItemModel? existingItem = _inventoryItems.firstWhere((element) => element.code.toLowerCase() == codeController.text);
+
+          if (existingItem != null) {
+            setCurrentInventoryItem(existingItem.code);
+          }
+        } catch (error) {
+          print('Not found ${error.toString()}');
+        }
+      }
+    });
     amountController.addListener(() {
       validateForm();
     });

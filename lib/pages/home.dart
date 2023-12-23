@@ -90,7 +90,7 @@ class _InventoryListState extends State<InventoryList> {
                   String title = isFinished
                       ? '${currentInventory.id}: Finished: ${currentInventory.finished}'
                       : '${currentInventory.id}: Started: ${currentInventory.started}';
-                  return ListTile(
+                  return Card(child: ListTile(
                     onTap: () async {
                       context
                           .read<InventoryProvider>()
@@ -108,7 +108,8 @@ class _InventoryListState extends State<InventoryList> {
                     trailing: isFinished
                         ? const Icon(Icons.done, color: Colors.green)
                         : const Icon(Icons.edit),
-                  );
+                  ),)
+                   ;
                 }));
   }
 }

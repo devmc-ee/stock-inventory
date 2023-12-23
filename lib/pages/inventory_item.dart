@@ -81,7 +81,7 @@ class _SubmittableTextField extends State<SubmittableTextField> {
   Widget build(BuildContext context) {
     final fieldName = widget.fieldName;
     final readOnly = context.watch<InventoryProvider>().hasCurrentInventoryItem;
-    var _field = _textField(context, fieldName, readOnly);
+    Row _field = _textField(context, fieldName, readOnly);
 
     if (fieldName.toLowerCase() == 'price') {
       _field = _priceField(context, fieldName, readOnly);
@@ -151,6 +151,7 @@ class _SubmittableTextField extends State<SubmittableTextField> {
   }
 
   Row _textField(BuildContext context, String fieldName, bool readOnly) {
+    FocusNode focusNode = context.watch<InventoryProvider>().focusNode;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       mainAxisSize: MainAxisSize.max,
@@ -158,6 +159,7 @@ class _SubmittableTextField extends State<SubmittableTextField> {
         Expanded(
             flex: 4,
             child: TextField(
+              focusNode: fieldName.toLowerCase() == 'code' ? focusNode : null,
               readOnly: readOnly,
               controller:
                   context.read<InventoryProvider>().getController(fieldName),
