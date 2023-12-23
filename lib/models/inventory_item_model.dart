@@ -15,7 +15,7 @@ class InventoryItemModel {
     required this.inventory,
   });
 
-  InventoryItemModel.fromMap(Map<String, dynamic> item)
+  InventoryItemModel.fromMap(Map<dynamic, dynamic> item)
       : code = item['code'],
         name = item['name'],
         price = item['price'],

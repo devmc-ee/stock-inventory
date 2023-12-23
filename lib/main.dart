@@ -24,7 +24,8 @@ class App extends StatelessWidget {
       providers: [
         ChangeNotifierProvider<LoginInfo>(create: (context) => LoginInfo()),
         ChangeNotifierProvider<InventoryProvider>(
-            create: (context) => InventoryProvider()),
+          create: (context) => InventoryProvider(),
+        ),
       ],
       child: MaterialApp.router(
         routerConfig: _router,

@@ -13,7 +13,7 @@ class HomePage extends StatelessWidget {
     return Scaffold(
       appBar: appBar(),
       body: const InventoryList(),
-      floatingActionButton: ActionButton(),
+      floatingActionButton: const ActionButton(),
     );
   }
 

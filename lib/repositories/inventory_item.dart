@@ -5,7 +5,22 @@ class InventoryItemRepository {
   static const _tableName = 'inventory_items';
   static const model = InventoryItemModel;
 
-  static Future<void> add({required String code, required String name, required double price, required String inventoryUuid, required String user, int amount = 1, }) async {
-    await DatabaseService.insert(_tableName, InventoryItemModel(code: code, name: name, price: '$price €', amount: amount, user: user, inventory: inventoryUuid));
+  static Future<int> add({required String code, required String name, required double price, required String inventoryUuid, required String user, int amount = 1, }) async {
+      final data = InventoryItemModel(code: code, name: name, price: '$price €', amount: amount, user: user, inventory: inventoryUuid).toMap();
+      return await DatabaseService.insert(_tableName, data);
+  }
+
+  static Future<List<InventoryItemModel>> getAll() async{
+    final items = await DatabaseService.getAll(_tableName);
+
+    if (items.isNotEmpty) {
+      return items.map((item) => InventoryItemModel.fromMap(item)).toList();
+    }  
+
+    return [];  
+  }
+
+  static Future<int> delete({ required String code }) async {
+    return await DatabaseService.delete(tableName: _tableName, idName: 'code', idValue: code);
   }
 }

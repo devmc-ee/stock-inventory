@@ -33,6 +33,7 @@ class InventoryItemPage extends StatelessWidget {
     );
   }
 }
+
 class SubmittableTextField extends StatefulWidget {
   final String fieldName;
 
@@ -42,31 +43,25 @@ class SubmittableTextField extends StatefulWidget {
 }
 
 class _SubmittableTextField extends State<SubmittableTextField> {
+  TextEditingController? amountController;
+  TextEditingController? codeController;
+  TextEditingController? priceController;
+  TextEditingController? nameController;
+
   @override
   void initState() {
+    if (mounted) {
+      amountController = Provider.of<InventoryProvider>(context, listen: false)
+          .amountController;
+      codeController =
+          Provider.of<InventoryProvider>(context, listen: false).codeController;
+      priceController = Provider.of<InventoryProvider>(context, listen: false)
+          .priceController;
+      nameController =
+          Provider.of<InventoryProvider>(context, listen: false).nameController;
+      Provider.of<InventoryProvider>(context, listen: false).initControllers();
+    }
     super.initState();
-
-    // Start listening to changes.
-    Provider.of<InventoryProvider>(context, listen: false)
-        .amountController
-        .addListener(() {
-      Provider.of<InventoryProvider>(context, listen: false).validateForm();
-    });
-    Provider.of<InventoryProvider>(context, listen: false)
-        .codeController
-        .addListener(() {
-      Provider.of<InventoryProvider>(context, listen: false).validateForm();
-    });
-    Provider.of<InventoryProvider>(context, listen: false)
-        .priceController
-        .addListener(() {
-      Provider.of<InventoryProvider>(context, listen: false).validateForm();
-    });
-    Provider.of<InventoryProvider>(context, listen: false)
-        .nameController
-        .addListener(() {
-      Provider.of<InventoryProvider>(context, listen: false).validateForm();
-    });
   }
 
   @override
@@ -98,14 +93,13 @@ class _SubmittableTextField extends State<SubmittableTextField> {
           const SizedBox(width: 10),
           Expanded(
               child: TextField(
-                readOnly: true,
+            readOnly: true,
             textAlign: TextAlign.center,
             controller: context.read<InventoryProvider>().amountController,
             keyboardType: TextInputType.number,
             inputFormatters: <TextInputFormatter>[
               FilteringTextInputFormatter.digitsOnly,
-               FilteringTextInputFormatter.deny(
-                      RegExp(r'\s')),
+              FilteringTextInputFormatter.deny(RegExp(r'\s')),
             ],
             decoration: InputDecoration(
               border: const OutlineInputBorder(),
@@ -165,14 +159,14 @@ class _SubmittableTextField extends State<SubmittableTextField> {
 
   FilledButton _submitFieldButton(fieldName) {
     return FilledButton(
-      onPressed: () {},
+      onPressed: fieldName.toLowerCase() == 'price' ? null : () {},
       style: FilledButton.styleFrom(
           textStyle: const TextStyle(fontSize: 20),
           minimumSize: const Size.fromHeight(65),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(6),
           )),
-      child: const Icon(Icons.done),
+      child: const Icon(Icons.camera_alt),
     );
   }
 
@@ -183,7 +177,7 @@ class _SubmittableTextField extends State<SubmittableTextField> {
     void _toggleEnabled() {
       print('amount');
       print(_amount);
-      print( _amount > 0);
+      print(_amount > 0);
       setState(() {
         _isEnabled = _amount > 0;
       });
@@ -194,13 +188,16 @@ class _SubmittableTextField extends State<SubmittableTextField> {
         _amount = context.read<InventoryProvider>().amount;
       });
     }
+
     return FilledButton(
-      onPressed: _isEnabled && !isIncrease || isIncrease ? () {
-        context.read<InventoryProvider>().changeAmount(isIncrease);
-        _setAmount();
-        _toggleEnabled();
-        print(_isEnabled && !isIncrease || isIncrease);
-      } : null,
+      onPressed: _isEnabled && !isIncrease || isIncrease
+          ? () {
+              context.read<InventoryProvider>().changeAmount(isIncrease);
+              _setAmount();
+              _toggleEnabled();
+              print(_isEnabled && !isIncrease || isIncrease);
+            }
+          : null,
       style: FilledButton.styleFrom(
           textStyle: const TextStyle(fontSize: 30),
           minimumSize: const Size.fromHeight(65),
@@ -238,9 +235,19 @@ class _ButtonState extends State<Button> {
             padding: const EdgeInsets.all(8),
             child: FilledButton(
               style: style,
-              onPressed: canSubmit ?  () {
-                context.read<InventoryProvider>().addInventoryItem();
-              }: null,
+              onPressed: canSubmit
+                  ? () async {
+                      final msg = await context
+                          .read<InventoryProvider>()
+                          .addInventoryItem();
+
+                      final snackBar = SnackBar(
+                          content: msg.content, backgroundColor: msg.color);
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(snackBar);
+                      }
+                    }
+                  : null,
               child: const Text('Save'),
             ),
           ),

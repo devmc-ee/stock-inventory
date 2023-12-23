@@ -40,6 +40,20 @@ class DatabaseService {
     }
   }
 
+  static Future delete({ required String tableName, required String idName, required String idValue }) async {
+    if (_db == null) {
+      await DatabaseService.init();
+    }
+    int amount = 0;
+
+    if (_db != null) {
+      amount = await _db!.delete(tableName,
+          where: '$idName = ?', whereArgs: [idValue]);
+    }
+
+    return amount;
+  }
+
   static Future<int> update(
       tableName, Map<String, dynamic> values, Map<String, String> where) async {
     int id = 0;
@@ -64,7 +78,7 @@ class DatabaseService {
     }
 
     if (_db != null) {
-      id = await _db!.insert(tableName, row);
+      return await _db!.insert(tableName, row);
     }
 
     return id;
@@ -139,9 +153,9 @@ class DatabaseService {
     await db.execute("""CREATE TABLE inventory_items (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
-        code TEXT NOT NULL, 
+        code TEXT NOT NULL UNIQUE, 
         price REAl NOT NULL,
-        quantity INTEGER NOT NULL,
+        amount INTEGER NOT NULL,
         user TEXT NOT NULL,
         inventory INTEGER NOT NULL);""");
   }
