@@ -7,7 +7,7 @@ import 'package:provider/provider.dart';
 
 class InventoryItemPage extends StatelessWidget {
   InventoryItemPage({super.key});
-  final DateFormat formatter = DateFormat('yyyy-MM-dd H:m');
+  final DateFormat formatter = DateFormat('yyyy-MM-dd HH:mm');
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +16,7 @@ class InventoryItemPage extends StatelessWidget {
     final updatedAt = currentInventoryItem?.updatedAt != null ? formatter.format(currentInventoryItem!.updatedAt) : '';
     return Scaffold(
       // resizeToAvoidBottomInset: false,
-      appBar: appBar(),
+      appBar: appBar(currentInventoryItem),
       body: Column(
         children: [
           const SubmittableTextField('Code'),
@@ -32,11 +32,13 @@ class InventoryItemPage extends StatelessWidget {
     );
   }
 
-  AppBar appBar() {
+  AppBar appBar(InventoryItemModel? currentInventoryItem ) {
+    bool isExistingItem = currentInventoryItem != null && currentInventoryItem.createdAt != null;
     return AppBar(
-      title: const Text(
-        'New Item',
-        style: TextStyle(fontWeight: FontWeight.bold),
+      title: 
+       Text(
+        isExistingItem? currentInventoryItem.code  : 'New Item',
+        style: const TextStyle(fontWeight: FontWeight.bold),
       ),
       centerTitle: true,
     );
@@ -78,11 +80,11 @@ class _SubmittableTextField extends State<SubmittableTextField> {
   @override
   Widget build(BuildContext context) {
     final fieldName = widget.fieldName;
-
-    var _field = _textField(context, fieldName);
+    final readOnly = context.watch<InventoryProvider>().hasCurrentInventoryItem;
+    var _field = _textField(context, fieldName, readOnly);
 
     if (fieldName.toLowerCase() == 'price') {
-      _field = _priceField(context, fieldName);
+      _field = _priceField(context, fieldName, readOnly);
     }
 
     if (fieldName.toLowerCase() == 'amount') {
@@ -122,7 +124,7 @@ class _SubmittableTextField extends State<SubmittableTextField> {
         ]);
   }
 
-  Row _priceField(BuildContext context, String fieldName) {
+  Row _priceField(BuildContext context, String fieldName, bool readOnly) {
     return Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         mainAxisSize: MainAxisSize.max,
@@ -130,6 +132,7 @@ class _SubmittableTextField extends State<SubmittableTextField> {
           Expanded(
               flex: 4,
               child: TextField(
+                readOnly: readOnly,
                 controller: context.read<InventoryProvider>().priceController,
                 keyboardType: const TextInputType.numberWithOptions(
                     decimal: true, signed: false),
@@ -143,11 +146,11 @@ class _SubmittableTextField extends State<SubmittableTextField> {
                     suffixIcon: Icon(Icons.euro)),
               )),
           const SizedBox(width: 10),
-          Expanded(child: _submitFieldButton(fieldName))
+          Expanded(child: _submitFieldButton(fieldName, readOnly))
         ]);
   }
 
-  Row _textField(BuildContext context, String fieldName) {
+  Row _textField(BuildContext context, String fieldName, bool readOnly) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       mainAxisSize: MainAxisSize.max,
@@ -155,6 +158,7 @@ class _SubmittableTextField extends State<SubmittableTextField> {
         Expanded(
             flex: 4,
             child: TextField(
+              readOnly: readOnly,
               controller:
                   context.read<InventoryProvider>().getController(fieldName),
               decoration: InputDecoration(
@@ -163,14 +167,14 @@ class _SubmittableTextField extends State<SubmittableTextField> {
               ),
             )),
         const SizedBox(width: 10),
-        Expanded(child: _submitFieldButton(fieldName))
+        Expanded(child: _submitFieldButton(fieldName, readOnly))
       ],
     );
   }
 
-  FilledButton _submitFieldButton(fieldName) {
+  FilledButton _submitFieldButton(String fieldName, bool readOnly) {
     return FilledButton(
-      onPressed: fieldName.toLowerCase() == 'price' ? null : () {},
+      onPressed: fieldName.toLowerCase() == 'price' || readOnly? null : () {},
       style: FilledButton.styleFrom(
           textStyle: const TextStyle(fontSize: 20),
           minimumSize: const Size.fromHeight(65),
@@ -258,7 +262,7 @@ class _ButtonState extends State<Button> {
                   ? () async {
                       final msg = await context
                           .read<InventoryProvider>()
-                          .addInventoryItem();
+                          .handleInventoryItem();
 
                       final snackBar = SnackBar(
                           content: msg.content, backgroundColor: msg.color);

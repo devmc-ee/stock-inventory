@@ -27,7 +27,7 @@ class InventoryProvider extends ChangeNotifier {
   bool get hasOpenInventory => _inventories.isNotEmpty
       ? _inventories.where((element) => element.finished == null).isNotEmpty
       : false;
-
+  bool get hasCurrentInventoryItem => _currentInventoryItem != null;
   bool get isOpenedSearchBar => _isOpenedSearchBar;
 
   InventoryListModel? get currentInventory => _currentInventory;
@@ -199,9 +199,17 @@ class InventoryProvider extends ChangeNotifier {
     _amountController.text = '1';
   }
 
-  Future<SnakbarMessage> addInventoryItem() async {
-    if (_currentInventory != null && _canSubmit) {
-      try {
+  Future<SnakbarMessage> handleInventoryItem() async {
+    if(!_canSubmit) {
+      return SnakbarMessage(
+        content: const Text('There are some invalid fields'),
+        color: Colors.red,
+      );
+    }
+
+    if (_currentInventoryItem == null) {
+      // handle new item data
+       try {
         double price = double.parse(priceController.text);
 
         await InventoryItemRepository.add(
@@ -209,13 +217,14 @@ class InventoryProvider extends ChangeNotifier {
             name: nameController.text,
             price: price,
             inventoryUuid: _currentInventory!.uuid,
-            user: _currentInventory!.user);
+            user: _currentInventory!.user,
+            amount: int.parse(_amountController.text));
       } catch (error) {
         String errorMessage = error.toString();
 
         if (errorMessage.contains('UNIQUE')) {
           return SnakbarMessage(
-            content: Text('Failed! Code should be UNIQUE'),
+            content: const Text('Failed! Code should be UNIQUE'),
             color: Colors.red,
           );
         }
@@ -225,12 +234,27 @@ class InventoryProvider extends ChangeNotifier {
         );
       }
     }
+
+    if (_currentInventoryItem?.createdAt != null) {
+      // handle item update
+      try {
+        await InventoryItemRepository.update(
+            code: codeController.text,
+            amount: int.parse(_amountController.text));
+      } catch (error) {
+        String errorMessage = error.toString();
+        return SnakbarMessage(
+          content: Text('Failed! $errorMessage'),
+          color: Colors.red,
+        );
+      }
+    } 
     
     await getInventorieItems();
 
     dropFormData();
     return SnakbarMessage(
-      content: Text('Success! Scan next one!'),
+      content: const Text('Success! Scan next one!'),
       color: Colors.green,
     );
   }

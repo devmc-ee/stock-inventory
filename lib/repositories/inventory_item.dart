@@ -23,4 +23,8 @@ class InventoryItemRepository {
   static Future<int> delete({ required String code }) async {
     return await DatabaseService.delete(tableName: _tableName, idName: 'code', idValue: code);
   }
+
+  static Future<int> update({ required String code, required int amount }) async {
+    return await DatabaseService.update(_tableName, {'amount': amount, 'updated_at': DateTime.now().toString() }, {'code': code });
+  }
 }

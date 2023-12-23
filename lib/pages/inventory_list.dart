@@ -91,7 +91,7 @@ class InventoryItemsList extends StatefulWidget {
 
 class _InventoryItemsListState extends State<InventoryItemsList> {
   InventoryListModel? _currentInventory;
-  final DateFormat formatter = DateFormat('yyyy-MM-dd H:m');
+  final DateFormat formatter = DateFormat('yyyy-MM-dd HH:mm');
   @override
   void initState() {
     super.initState();
@@ -172,7 +172,7 @@ class _InventoryItemsListState extends State<InventoryItemsList> {
                     subtitle: Text('${inventoryItems[index].name} (${formatter.format(inventoryItems[index].updatedAt)})'),
                     title: Text(inventoryItems[index].code, style: const TextStyle(
                           fontWeight: FontWeight.bold, fontSize: 16)),
-                    trailing:  Text(inventoryItems[index].price.toString()),
+                    trailing:  Text('€${inventoryItems[index].price.toString()}'),
                   )));
             });
   }
