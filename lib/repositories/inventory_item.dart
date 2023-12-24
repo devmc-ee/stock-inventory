@@ -10,8 +10,8 @@ class InventoryItemRepository {
       return await DatabaseService.insert(_tableName, data);
   }
 
-  static Future<List<InventoryItemModel>> getAll() async{
-    final items = await DatabaseService.getAll(_tableName);
+  static Future<List<InventoryItemModel>> getAll(String inventoryUuid) async{
+    final items = await DatabaseService.getAll(tableName: _tableName, idName: 'inventory', idValue: inventoryUuid);
 
     if (items.isNotEmpty) {
       return items.map((item) => InventoryItemModel.fromMap(item)).toList();

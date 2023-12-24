@@ -82,7 +82,7 @@ class DatabaseService {
     return id;
   }
 
-  static Future<List<Map>> getAll(String tableName) async {
+  static Future<List<Map>> getAll({required tableName,  String? idName, String? idValue}) async {
     List<Map> data = [];
 
     if (_db == null) {
@@ -90,7 +90,7 @@ class DatabaseService {
     }
 
     if (_db != null) {
-      data = await _db!.query(tableName);
+      data = await _db!.query(tableName, where: idName != null ? '$idName = ?': null, whereArgs: idValue != null? [idValue]: null );
     }
 
     return data;
@@ -147,6 +147,7 @@ class DatabaseService {
         started TEXT NOT NULL,
         finished TEXT,
         user TEXT NOT NULL,
+        items_amount INT,
         synced INTEGER);""");
     await db.execute("""CREATE TABLE inventory_items (
         id INTEGER PRIMARY KEY AUTOINCREMENT,

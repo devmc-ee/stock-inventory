@@ -7,9 +7,12 @@ import 'package:inventory/pages/home.dart';
 import 'package:inventory/pages/inventory_item.dart';
 import 'package:inventory/pages/login.dart';
 import 'package:provider/provider.dart';
-
+import 'package:flutter/services.dart';
 void main() async {
-  runApp(App());
+
+  WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp])
+      .then((value) => runApp(App()));
 }
 
 class App extends StatelessWidget {
@@ -27,11 +30,11 @@ class App extends StatelessWidget {
           create: (context) => InventoryProvider(),
         ),
       ],
-      child: MaterialApp.router(
+      child: SafeArea(child: MaterialApp.router(
         routerConfig: _router,
         debugShowCheckedModeBanner: false,
       ),
-    );
+    ));
   }
 
   late final _router = GoRouter(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:inventory/models/inventory_list_model.dart';
 import 'package:inventory/pages/inventory_list.dart';
 import 'package:inventory/providers/inventory.dart';
@@ -73,10 +74,14 @@ class InventoryList extends StatefulWidget {
 }
 
 class _InventoryListState extends State<InventoryList> {
+  final DateFormat formatter = DateFormat('yyyy-MM-dd HH:mm');
+
   @override
   Widget build(BuildContext context) {
     List<InventoryListModel> inventories =
         context.watch<InventoryProvider>().inventories;
+    int openedInventoryItemsAmount =
+        context.watch<InventoryProvider>().inventoryItemsAmount;
 
     return Center(
         child: inventories.isEmpty
@@ -88,8 +93,8 @@ class _InventoryListState extends State<InventoryList> {
                   final InventoryListModel currentInventory = inventories[index];
                   bool isFinished = inventories[index].finished != null;
                   String title = isFinished
-                      ? '${currentInventory.id}: Finished: ${currentInventory.finished}'
-                      : '${currentInventory.id}: Started: ${currentInventory.started}';
+                      ? '${currentInventory.id}: [Finished] ${formatter.format(currentInventory.finished!)}'
+                      : '${currentInventory.id}: Started: ${formatter.format(currentInventory.started)}';
                   return Card(child: ListTile(
                     onTap: () async {
                       context
@@ -104,7 +109,7 @@ class _InventoryListState extends State<InventoryList> {
                     },
                     leading: const Icon(Icons.table_view),
                     title: Text(title),
-                    subtitle: Text(inventories[index].user),
+                    subtitle: Text('Items: ${isFinished? currentInventory.itemsAmount : openedInventoryItemsAmount} pcs'),
                     trailing: isFinished
                         ? const Icon(Icons.done, color: Colors.green)
                         : const Icon(Icons.edit),
@@ -133,8 +138,8 @@ showAlertDialog(BuildContext context) {
   );
   // set up the AlertDialog
   AlertDialog alert = AlertDialog(
-    title: Text("Finish?"),
-    content: Text("Are you sure that the inventory is done?"),
+    title: const Text("Confirm inventory finish"),
+    content: const Text("Are you sure that the inventory is done?"),
     actions: [
       cancelButton,
       continueButton,

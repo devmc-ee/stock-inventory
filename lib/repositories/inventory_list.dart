@@ -15,7 +15,7 @@ class InventoryListRepository {
           {},
           user: userName,
           uuid: uuid.v1(),
-          started: DateTime.now().toString(),
+          started: DateTime.now(),
         ).toMap());
   }
 

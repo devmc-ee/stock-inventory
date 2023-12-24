@@ -15,6 +15,8 @@ dependencies:
   uuid: ^4.2.2
   intl: ^0.19.0
   async: ^2.11.0
+  camera: ^0.10.5+7
+  google_mlkit_text_recognition: ^0.11.0
 
 dev_dependencies:
   flutter_test:

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:inventory/models/inventory_item_model.dart';
+import 'package:inventory/pages/text_detector_view.dart';
 import 'package:inventory/providers/inventory.dart';
 import 'package:provider/provider.dart';
 
@@ -11,9 +12,17 @@ class InventoryItemPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    InventoryItemModel? currentInventoryItem = context.watch<InventoryProvider>().currentInventoryItem;
-    final createdAt = currentInventoryItem?.createdAt != null ? formatter.format(currentInventoryItem!.createdAt) : '';
-    final updatedAt = currentInventoryItem?.updatedAt != null ? formatter.format(currentInventoryItem!.updatedAt) : '';
+    InventoryItemModel? currentInventoryItem =
+        context.watch<InventoryProvider>().currentInventoryItem;
+    bool hasCode = context.watch<InventoryProvider>().hasCode;
+    final bool isExistingItem = currentInventoryItem?.updatedAt != null;
+
+    final createdAt =
+        isExistingItem ? formatter.format(currentInventoryItem!.createdAt) : '';
+    final updatedAt =
+        isExistingItem ? formatter.format(currentInventoryItem!.updatedAt) : '';
+    final lastCountedAmount =
+        isExistingItem ? currentInventoryItem!.amount.toString() : '';
     return Scaffold(
       // resizeToAvoidBottomInset: false,
       appBar: appBar(currentInventoryItem),
@@ -25,19 +34,58 @@ class InventoryItemPage extends StatelessWidget {
           const SubmittableTextField('Amount'),
           const Button(),
           const SizedBox(height: 30),
-          Text(currentInventoryItem?.createdAt != null ? 'Created at: $createdAt' : 'New item'),
-          Text(currentInventoryItem?.updatedAt != null ? 'Last update at: $updatedAt' : ''),
+          isExistingItem
+              ? Container(
+                  decoration: const BoxDecoration(
+                      color: Colors.orange,
+                      borderRadius: BorderRadius.all(Radius.circular(20))),
+                  height: 50,
+                  width: 300,
+                  margin: const EdgeInsets.all(6),
+                  alignment: Alignment.center,
+                  child: const Padding(
+                    padding: EdgeInsets.all(8),
+                    child: Text('Already counted item',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        )),
+                  ),
+                )
+              :  hasCode ? Container(
+                  decoration: const BoxDecoration(
+                      color: Colors.green,
+                      borderRadius: BorderRadius.all(Radius.circular(20))),
+                  height: 50,
+                  width: 300,
+                  margin: const EdgeInsets.all(6),
+                  alignment: Alignment.center,
+                  child: const Padding(
+                    padding: EdgeInsets.all(8),
+                    child: Text('New item',
+                  style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white)),
+                  ),
+                ):
+                const Text('')
+              ,
+          Text(isExistingItem ? 'Created at: $createdAt' : ''),
+          Text(isExistingItem ? 'Last update at: $updatedAt' : ''),
+          Text(isExistingItem ? 'Last amount: $lastCountedAmount' : ''),
         ],
       ),
     );
   }
 
-  AppBar appBar(InventoryItemModel? currentInventoryItem ) {
-    bool isExistingItem = currentInventoryItem != null && currentInventoryItem.createdAt != null;
+  AppBar appBar(InventoryItemModel? currentInventoryItem) {
+    bool isExistingItem =
+        currentInventoryItem != null && currentInventoryItem.createdAt != null;
     return AppBar(
-      title: 
-       Text(
-        isExistingItem? currentInventoryItem.code  : 'New Item',
+      title: Text(
+        isExistingItem ? currentInventoryItem.code : 'New Item',
         style: const TextStyle(fontWeight: FontWeight.bold),
       ),
       centerTitle: true,
@@ -176,7 +224,12 @@ class _SubmittableTextField extends State<SubmittableTextField> {
 
   FilledButton _submitFieldButton(String fieldName, bool readOnly) {
     return FilledButton(
-      onPressed: fieldName.toLowerCase() == 'price' || readOnly? null : () {},
+      onPressed: fieldName.toLowerCase() == 'price' || readOnly
+          ? null
+          : () {
+              context.read<InventoryProvider>().setRecognisedField(fieldName);
+              showAlertDialog(context, fieldName);
+            },
       style: FilledButton.styleFrom(
           textStyle: const TextStyle(fontSize: 20),
           minimumSize: const Size.fromHeight(65),
@@ -189,14 +242,15 @@ class _SubmittableTextField extends State<SubmittableTextField> {
 
   FilledButton _changeAmountButton(bool isIncrease, BuildContext context) {
     int _amount = context.read<InventoryProvider>().amount;
-    bool _isEnabled = _amount > 0;
+    InventoryItemModel? _existingItem =
+        context.read<InventoryProvider>().currentInventoryItem;
+    int _minAmount = _existingItem != null ? _existingItem.amount : 0;
+
+    bool _isEnabled = _amount > _minAmount;
 
     void _toggleEnabled() {
-      print('amount');
-      print(_amount);
-      print(_amount > 0);
       setState(() {
-        _isEnabled = _amount > 0;
+        _isEnabled = _amount > _minAmount;
       });
     }
 
@@ -234,14 +288,14 @@ class Button extends StatefulWidget {
 }
 
 class _ButtonState extends State<Button> {
-  @override 
+  @override
   void initState() {
     if (mounted) {
       Provider.of<InventoryProvider>(context, listen: false).validateForm();
-
     }
     super.initState();
   }
+
   @override
   Widget build(BuildContext context) {
     bool canSubmit = context.watch<InventoryProvider>().canSubmit;
@@ -280,4 +334,53 @@ class _ButtonState extends State<Button> {
       ),
     );
   }
+}
+
+showAlertDialog(BuildContext context, String calledBy) {
+  // set up the buttons
+  Widget cancelButton = TextButton(
+    child: Text("Cancel"),
+    onPressed: () {
+      Navigator.pop(context);
+    },
+  );
+  Widget continueButton = TextButton(
+    child: const Text("SAVE"),
+    onPressed: () async {
+      context.read<InventoryProvider>().submitRecognisedText();
+      Navigator.pop(context);
+    },
+  );
+  // set up the AlertDialog
+  // show the dialog
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      String recognisedText =
+          context.watch<InventoryProvider>().recognisedTextGroup;
+
+      return AlertDialog(
+        title: Text(calledBy),
+        content: Container(
+          height: 400,
+          child: Column(
+            children: [
+              Expanded(flex: 2, child: TextRecognizerView()),
+              Expanded(
+                flex: 1,
+                child: Center(
+                    child: Text(recognisedText,
+                        style: const TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold))),
+              )
+            ],
+          ),
+        ),
+        actions: [
+          cancelButton,
+          continueButton,
+        ],
+      );
+    },
+  );
 }

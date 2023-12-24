@@ -13,9 +13,14 @@ class InventoryProvider extends ChangeNotifier {
   List<InventoryItemModel> _filteredInventoryItems = [];
   InventoryItemModel? _currentInventoryItem;
   final FocusNode _focusNode = FocusNode();
+  String _recognisedText = '';
+  String _recognisedTextGroup = '';
+  String _recognisedField = '';
+  double _cameraZoom = 1.0;
 
   bool _isOpenedSearchBar = false;
   bool _canSubmit = false;
+
   final _codeController = TextEditingController();
   final _nameController = TextEditingController();
   final _priceController = TextEditingController();
@@ -43,10 +48,70 @@ class InventoryProvider extends ChangeNotifier {
   String get searchedCode => _searchController.text;
 
   int get amount => int.parse(_amountController.text);
+  bool get hasCode => _codeController.text.isNotEmpty;
 
   bool get canSubmit => _canSubmit;
 
+  String get recognisedText => _recognisedText;
+  String get recognisedTextGroup => _recognisedTextGroup;
+
+  int get inventoryItemsAmount => _inventoryItems.length;
   
+  double get cameraZoom => _cameraZoom;
+  bool get isCurrentInventoryFinished => _currentInventory?.finished != null;
+
+  void submitRecognisedText() {
+    if(_recognisedText.isNotEmpty && _recognisedField.isNotEmpty) {
+      switch(_recognisedField.toLowerCase()) {
+        case 'code': {
+          _codeController.text = _recognisedText;
+          findExistingInventoryItem(_recognisedText);
+        }
+        case 'name': {
+          List<String> regonisedStrings =  _recognisedText.split('\n');
+
+          _nameController.text = regonisedStrings[0];
+          _priceController.text = double.parse(regonisedStrings[1].replaceAll(RegExp(r'€'), '')).toString();
+        };
+      }
+
+      _recognisedText = '';
+      _recognisedField = '';
+
+      notifyListeners();
+    }
+
+  }
+
+  void setRecognisedText(String text) {
+    _recognisedText = text;
+
+    try {
+      switch(_recognisedField.toLowerCase()) {
+        case 'code': {
+          _recognisedTextGroup = '$_recognisedField: $text';
+        }
+        case 'name': {
+          List<String> splittedText = text.split('\n');
+          if (splittedText.length < 2) {
+            _recognisedTextGroup = '$_recognisedField: ${splittedText[0]}';
+          } else {
+            _recognisedTextGroup = '$_recognisedField: ${splittedText[0]} \nPrice: ${splittedText[1]}';
+          }
+        }
+      }
+    } catch (_) {
+
+    }
+
+    notifyListeners();
+  }
+
+  void setRecognisedField(String text) {
+    _recognisedField = text;
+    notifyListeners();
+  }
+
   void clearSearch() {
     _searchController.text = '';
     _isOpenedSearchBar = false;
@@ -100,7 +165,7 @@ class InventoryProvider extends ChangeNotifier {
   }
 
   Future<void> getInventorieItems() async {
-    _inventoryItems = await InventoryItemRepository.getAll();
+    _inventoryItems = await InventoryItemRepository.getAll(_currentInventory!.uuid);
     _filteredInventoryItems = _inventoryItems;
     notifyListeners();
   }
@@ -119,11 +184,10 @@ class InventoryProvider extends ChangeNotifier {
        notifyListeners();
     });
   }
-  void initControllers() {
-    _focusNode.addListener(() {
-      if (!_focusNode.hasFocus && codeController.text.isNotEmpty) {
-        try {
-          InventoryItemModel? existingItem = _inventoryItems.firstWhere((element) => element.code.toLowerCase() == codeController.text);
+
+  void findExistingInventoryItem(String code) {
+    try {
+          InventoryItemModel? existingItem = _inventoryItems.firstWhere((element) => element.code.toLowerCase() == code.toLowerCase());
 
           if (existingItem != null) {
             setCurrentInventoryItem(existingItem.code);
@@ -131,6 +195,12 @@ class InventoryProvider extends ChangeNotifier {
         } catch (error) {
           print('Not found ${error.toString()}');
         }
+  }
+
+  void initControllers() {
+    _focusNode.addListener(() {
+      if (!_focusNode.hasFocus && codeController.text.isNotEmpty) {
+        findExistingInventoryItem(codeController.text);
       }
     });
     amountController.addListener(() {
@@ -170,7 +240,9 @@ class InventoryProvider extends ChangeNotifier {
     _canSubmit = _codeController.text.isNotEmpty &&
         _nameController.text.isNotEmpty &&
         _priceController.text.isNotEmpty &&
-        _amountController.text.isNotEmpty;
+        _amountController.text.isNotEmpty && 
+        (_currentInventoryItem == null || _currentInventoryItem != null 
+        && _currentInventoryItem!.amount < int.parse(_amountController.text));
     await Future.delayed(Duration.zero);
 
     notifyListeners();
@@ -181,11 +253,12 @@ class InventoryProvider extends ChangeNotifier {
   }
 
   Future<void> getInventories() async {
-    var inventory = await DatabaseService.getAll('inventories');
+    var inventory = await DatabaseService.getAll( tableName: 'inventories');
 
     if (inventory.isNotEmpty) {
       _inventories =
           inventory.map((item) => InventoryListModel.fromMap(item)).toList();
+      _inventories.sort((a, b) => b.started.microsecondsSinceEpoch.compareTo(a.started.microsecondsSinceEpoch));
     }
 
     notifyListeners();
@@ -199,13 +272,19 @@ class InventoryProvider extends ChangeNotifier {
   Future<void> finish() async {
     _currentInventoryId = await InventoryListRepository.update({
       'finished': DateTime.now().toString(),
+      'items_amount': _inventoryItems.length,
     }, {
       'id': _inventories
           .firstWhere((element) => element.finished == null)
           .id
           .toString(),
     });
+    _currentInventory = null;
+    _currentInventoryItem = null;
+    _inventoryItems = [];
+    notifyListeners();
     await getInventories();
+
   }
 
   void dropFormData() {
@@ -213,6 +292,7 @@ class InventoryProvider extends ChangeNotifier {
     _nameController.text = '';
     _priceController.text = '';
     _amountController.text = '1';
+    _currentInventoryItem = null;
   }
 
   Future<SnakbarMessage> handleInventoryItem() async {

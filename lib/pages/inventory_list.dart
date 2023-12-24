@@ -11,12 +11,13 @@ class InventoryListPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     bool isOpenSearchBar = context.watch<InventoryProvider>().isOpenedSearchBar;
+    bool isInventoryFinished = context.watch<InventoryProvider>().isCurrentInventoryFinished;
     return Scaffold(
       appBar: PreferredSize(
           preferredSize: Size.fromHeight(isOpenSearchBar ? 140 : 60),
           child: const TopBar()),
       body: const InventoryItemsList(),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: isInventoryFinished ? null :FloatingActionButton(
           onPressed: () async {
             if (context.mounted) {
               context.read<InventoryProvider>().dropCurrentIventoryItem();
@@ -45,12 +46,15 @@ class _TopBarState extends State<TopBar> {
   Widget build(BuildContext context) {
     bool isOpenSearchBar = context.watch<InventoryProvider>().isOpenedSearchBar;
     InventoryListModel? currentInventory;
+    String? _finished = '';
     if (context.mounted) {
       currentInventory = context.watch<InventoryProvider>().currentInventory;
+
+      _finished = currentInventory?.finished != null ? '[FINISHED]' : '';
     }
     return AppBar(
         title: Text(
-          'Inventory ${currentInventory?.id} by ${currentInventory?.user}',
+          '$_finished Inventory ${currentInventory?.id}',
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
@@ -103,6 +107,7 @@ class _InventoryItemsListState extends State<InventoryItemsList> {
   @override
   Widget build(BuildContext context) {
     _currentInventory = context.watch<InventoryProvider>().currentInventory;
+    bool _isCurrentInventoryFinished = context.watch<InventoryProvider>().isCurrentInventoryFinished;
 
     List<InventoryItemModel> inventoryItems =
         context.watch<InventoryProvider>().inventoryItems;
@@ -118,8 +123,8 @@ class _InventoryItemsListState extends State<InventoryItemsList> {
                     color: Colors.red,
                     child: const Icon(Icons.delete),
                   ),
-                  direction: DismissDirection.endToStart,
-                  confirmDismiss: (DismissDirection direction) async {
+                  direction: _isCurrentInventoryFinished? DismissDirection.none:  DismissDirection.endToStart,
+                  confirmDismiss: _isCurrentInventoryFinished ? null: (DismissDirection direction) async {
                     if (direction == DismissDirection.endToStart) {
                       return await showDialog(
                         context: context,
@@ -144,7 +149,7 @@ class _InventoryItemsListState extends State<InventoryItemsList> {
                       );
                     }
                   },
-                  onDismissed: (direction) {
+                  onDismissed: _isCurrentInventoryFinished? null: (direction) {
                     context
                         .read<InventoryProvider>()
                         .deleteInventoryItem(inventoryItems[index].code);
@@ -156,7 +161,7 @@ class _InventoryItemsListState extends State<InventoryItemsList> {
                       style: const TextStyle(
                           fontWeight: FontWeight.bold, fontSize: 16),
                     ),
-                    onTap: () async {
+                    onTap: _isCurrentInventoryFinished? null: () async {
                       if (context.mounted) {
                         context
                             .read<InventoryProvider>()
@@ -169,7 +174,7 @@ class _InventoryItemsListState extends State<InventoryItemsList> {
                                     InventoryItemPage()));
                       }
                     },
-                    subtitle: Text('${inventoryItems[index].name} (${formatter.format(inventoryItems[index].updatedAt)})'),
+                    subtitle: Text('${inventoryItems[index].name} \n${formatter.format(inventoryItems[index].updatedAt)}'),
                     title: Text(inventoryItems[index].code, style: const TextStyle(
                           fontWeight: FontWeight.bold, fontSize: 16)),
                     trailing:  Text('€${inventoryItems[index].price.toString()}'),
