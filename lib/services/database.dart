@@ -152,7 +152,7 @@ class DatabaseService {
     await db.execute("""CREATE TABLE inventory_items (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
-        code TEXT NOT NULL UNIQUE, 
+        code TEXT NOT NULL, 
         price REAl NOT NULL,
         amount INTEGER NOT NULL,
         user TEXT NOT NULL,

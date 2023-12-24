@@ -17,6 +17,7 @@ class InventoryProvider extends ChangeNotifier {
   String _recognisedTextGroup = '';
   String _recognisedField = '';
   double _cameraZoom = 1.0;
+  double _maxAvailableZoom = 1.0;
 
   bool _isOpenedSearchBar = false;
   bool _canSubmit = false;
@@ -58,22 +59,38 @@ class InventoryProvider extends ChangeNotifier {
   int get inventoryItemsAmount => _inventoryItems.length;
   
   double get cameraZoom => _cameraZoom;
+  double get maxAvailableZoom => _maxAvailableZoom;
   bool get isCurrentInventoryFinished => _currentInventory?.finished != null;
+
+  void saveCameraZoom (double value) {
+    _cameraZoom = value;
+    notifyListeners();
+  }
+
+  void saveMaxAvailableZoom (double value) {
+    _maxAvailableZoom = value;
+    notifyListeners();
+  }
 
   void submitRecognisedText() {
     if(_recognisedText.isNotEmpty && _recognisedField.isNotEmpty) {
-      switch(_recognisedField.toLowerCase()) {
-        case 'code': {
-          _codeController.text = _recognisedText;
-          findExistingInventoryItem(_recognisedText);
-        }
-        case 'name': {
-          List<String> regonisedStrings =  _recognisedText.split('\n');
+      try {
+        switch(_recognisedField.toLowerCase()) {
+          case 'code': {
+            _codeController.text = _recognisedText;
+            findExistingInventoryItem(_recognisedText);
+          }
+          case 'name': {
+            List<String> regonisedStrings =  _recognisedText.split('\n');
 
-          _nameController.text = regonisedStrings[0];
-          _priceController.text = double.parse(regonisedStrings[1].replaceAll(RegExp(r'€'), '')).toString();
-        };
+            _nameController.text = regonisedStrings[0];
+            _priceController.text = double.parse(regonisedStrings[1].replaceAll(RegExp(r'€'), '')).toString();
+          };
+        }
+      } catch(_) {
+
       }
+      
 
       _recognisedText = '';
       _recognisedField = '';
@@ -166,6 +183,7 @@ class InventoryProvider extends ChangeNotifier {
 
   Future<void> getInventorieItems() async {
     _inventoryItems = await InventoryItemRepository.getAll(_currentInventory!.uuid);
+    _inventoryItems.sort((a, b) => b.updatedAt.millisecondsSinceEpoch.compareTo(a.updatedAt.millisecondsSinceEpoch));
     _filteredInventoryItems = _inventoryItems;
     notifyListeners();
   }

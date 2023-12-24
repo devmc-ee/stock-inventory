@@ -43,10 +43,9 @@ class _CameraViewState extends State<CameraView> {
 
   @override
   void initState() {
-    if (mounted) {
-      _currentZoomLevel = context.read<InventoryProvider>().cameraZoom;
-    }
+
     super.initState();
+
 
     _initialize();
   }
@@ -68,12 +67,16 @@ class _CameraViewState extends State<CameraView> {
 
   @override
   void dispose() {
+
     _stopLiveFeed();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    _currentZoomLevel = context.watch<InventoryProvider>().cameraZoom;
+    _maxAvailableZoom = context.watch<InventoryProvider>().maxAvailableZoom;
+
     return Scaffold(body: _liveFeedBody());
   }
 
@@ -183,8 +186,7 @@ class _CameraViewState extends State<CameraView> {
                     inactiveColor: Colors.white30,
                     onChanged: (value) async {
                       setState(() {
-                        _currentZoomLevel = value;
-                        print(value);
+                        context.read<InventoryProvider>().saveCameraZoom(value);
                       });
                       await _controller?.setZoomLevel(value);
                     },
@@ -277,12 +279,16 @@ class _CameraViewState extends State<CameraView> {
         return;
       }
       _controller?.getMinZoomLevel().then((value) {
-        _currentZoomLevel = value;
+
+        // _currentZoomLevel = value;
         _minAvailableZoom = value;
       });
       _controller?.getMaxZoomLevel().then((value) {
+        _currentZoomLevel = context.read<InventoryProvider>().cameraZoom;
+        context.read<InventoryProvider>().saveMaxAvailableZoom(value);
         _maxAvailableZoom = value;
-      });
+    
+      }).then((value) => _controller?.setZoomLevel(_currentZoomLevel));
       _currentExposureOffset = 0.0;
       _controller?.getMinExposureOffset().then((value) {
         _minAvailableExposureOffset = value;
